@@ -1,0 +1,107 @@
+---
+title: "Kvartalsrapport for CP-register"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+date: '`r format(Sys.Date(), "%d %b %Y")`'
+---
+
+
+```{r valg, echo=FALSE, warning=FALSE, include=FALSE, message=FALSE}
+
+rm(list = ls())
+
+```
+
+
+```{r setup , echo=FALSE, warning=FALSE, include=FALSE, message=FALSE} 
+## henter pakker eller installere om ikke finnes
+inspak <- function(pkg){
+  nypkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(nypkg))
+    install.packages(nypkg, dependencies = TRUE, repos = "http://cran.r-project.org")
+}
+
+pakke <- c("data.table", "ggplot2", "directlabels", "grid", "knitr", "kableExtra")
+inspak(pakke)
+
+## Upload libraries
+library(data.table)
+library(ggplot2)
+library(directlabels)
+library(knitr)
+library(grid)
+library(kableExtra)
+
+############
+############
+## DATA
+filDir <- getwd()
+sr01 <- paste0(filDir,"/", "datakilder1.R")
+sr02 <- paste0(filDir, "/", "datakilder2.R")
+##ifelse(file.exists(sr01), source(sr01), source(sr02))
+data <- ifelse(file.exists(sr01), sr01, sr02)
+source(data)
+
+#############
+## Knitr opt
+#############
+
+knitr::opts_chunk$set(fig.path = 'figures/cp-') #mappe for figurer
+
+##############
+## Output doc
+##############
+
+## outDoc <- knitr::opts_knit$git("rmarkdown.pandoc.to") #doc type output html,latex eller docx
+
+getOutputFormat <- function() {
+  output <- rmarkdown:::parse_yaml_front_matter(
+    readLines(knitr::current_input())
+  )$output
+  if (is.list(output)){
+    return(names(output)[1])
+  } else {
+    return(output[1])
+  }
+}
+
+printDoc <- getOutputFormat() #finne ut document type output
+
+###########
+## FARGER
+###########
+ColPoint <- "#FF3333" #farge for point
+cols <- c("#C6DBEF", "#4292C6", "#084594") #farge for flere bar
+colb <- "#99CCFF" #farge for en søyle
+options(digits = 3)
+
+###########
+## Function
+###########
+
+## bytt NA med 0
+bNA <- function(DT, na = 0){
+  for (j in seq_len(ncol(DT)))
+    set(DT,which(is.na(DT[[j]])),j, na) 
+}
+
+
+```
+
+# Antall 5-år registreringsskjemaer
+
+```{r skjema, echo=FALSE, message=FALSE, warning=FALSE}
+
+setDT(cpdata)
+
+
+
+
+```
+
+
+
+
+
