@@ -61,3 +61,4 @@ vignettes/*.pdf
 .httr-oauth
 /rapport/datakilder1.R
 *.pdf
+*.pdf
