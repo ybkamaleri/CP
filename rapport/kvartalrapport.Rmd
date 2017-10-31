@@ -92,11 +92,23 @@ bNA <- function(DT, na = 0){
 
 # Antall 5-år registreringsskjemaer
 
-```{r skjema, echo=FALSE, message=FALSE, warning=FALSE}
+```{r data, echo=FALSE, message=FALSE, warning=FALSE}
 
 setDT(cpdata)
+setDT(cphab)
 
+## kombinere data og hb-navn
+cpdata <- merge(cpdata, cphab, by.x = "HAB_TJENESTE", by.y = "id")
 
+## key1 for "per habiliteringstjeneste" 
+key1 <- "navn"
+perhab <- cpdata[, .N, by = get(key1)]
+
+## key2 for "per fødselsår"
+key2 <- "FAAR"
+peraar <- cpdata[, .N, by = get(key2)]
+
+knitr::kable(list(perhab, peraar))
 
 
 ```
