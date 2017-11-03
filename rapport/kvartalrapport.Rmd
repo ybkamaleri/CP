@@ -157,9 +157,12 @@ cat(c("\\begin{table}[h] \\centering ",
       "\\hspace{1cm} \\centering",
       t2,
       "\\caption{Fødselsår} \\end{table}"))
+
+
 ## beholder graphic device åpne
 opts_knit$set(global.device = TRUE)
 
+## opt 3
 library(gridExtra)
 tb1 <- tableGrob(tab3)
 tb2 <- tableGrob(tab4)
