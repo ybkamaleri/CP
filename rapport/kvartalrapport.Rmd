@@ -9,7 +9,6 @@ date: '`r format(Sys.Date(), "%d %b %Y")`'
 
 
 ```{r valg, echo=FALSE, warning=FALSE, include=FALSE, message=FALSE}
-
 rm(list = ls())
 
 ```
@@ -87,13 +86,13 @@ bNA <- function(DT, na = 0){
     set(DT,which(is.na(DT[[j]])),j, na) 
 }
 
-
 ```
 
 # Antall 5-år registreringsskjemaer
 
-```{r data, echo=FALSE, message=FALSE, warning=FALSE}
+## Antall per habiliteringstjeneste
 
+```{r habilt, echo=FALSE, warning=FALSE, message=FALSE}
 setDT(cpdata)
 setDT(cphab)
 
@@ -102,17 +101,41 @@ cpdata <- merge(cpdata, cphab, by.x = "HAB_TJENESTE", by.y = "id")
 
 ## key1 for "per habiliteringstjeneste" 
 key1 <- "navn"
-perhab <- cpdata[, .N, by = get(key1)]
+perhab <- cpdata[, .N, by = list("Habiliteringstjeneste" = get(key1))]
+
+knitr::kable(perhab)
+```
+
+
+## Antall per fødselsår
+
+```{r birth, echo=FALSE, message=FALSE, warning=FALSE}
 
 ## key2 for "per fødselsår"
 key2 <- "FAAR"
 peraar <- cpdata[, .N, by = get(key2)]
+peraar$ant <- "Antall"
 
-knitr::kable(list(perhab, peraar))
+## peraar <- peraar[order(get), ]
+setorder(peraar, get)
 
+## del tabell til to
+del <- (round(dim(peraar)[1] / 2)) - 1
+mdel <- dim(peraar)[1]
+tab1 <- peraar[1:del, ]
+tab2 <- peraar[(del + 1):mdel, ]
 
+## konvertere til wide
+tbl1 <- dcast(tab1, ant ~ get, value.var = "N")
+tbl2 <- dcast(tab2, ant ~ get, value.var = "N")
+
+## gir nytt navn
+names(tbl1)[1] <- "Fødselsår"
+names(tbl2)[1] <- "Fødselsår"
+
+knitr::kable(tbl1)
+knitr::kable(tbl2)
 ```
-
 
 
 
