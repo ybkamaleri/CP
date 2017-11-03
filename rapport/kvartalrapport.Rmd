@@ -149,19 +149,24 @@ tab4 <- peryr[(del + 1):mdel, ]
 names(tab3)[1] <- "Fødselsår"
 names(tab4)[1] <- "Fødselsår"
 
-t1 <- kable(tab3, format = 'latex')
-t2 <- kable(tab4, format = 'latex')
+t1 <- kable(tab3, align = "c", format = 'latex')
+t2 <- kable(tab4, align = "c", format = 'latex')
 
-cat(c("\\begin{table}[!htb] \\centering ",
+cat(c("\\begin{table}[h] \\centering ",
       t1,
       "\\hspace{1cm} \\centering",
       t2,
       "\\caption{Fødselsår} \\end{table}"))
+## beholder graphic device åpne
+opts_knit$set(global.device = TRUE)
 
-## knitr::kable(list(tab3, tab4), align = "lccc")
+library(gridExtra)
+tb1 <- tableGrob(tab3)
+tb2 <- tableGrob(tab4)
+grid.draw(gtable_combine(tb1, tb2, along = 1))
 
 
-  ```             
+```                           
 
 
 
