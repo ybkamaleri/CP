@@ -106,36 +106,62 @@ perhab <- cpdata[, .N, by = list("Habiliteringstjeneste" = get(key1))]
 knitr::kable(perhab)
 ```
 
-
 ## Antall per fødselsår
 
-```{r birth, echo=FALSE, message=FALSE, warning=FALSE}
+```{r birth, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 
 ## key2 for "per fødselsår"
 key2 <- "FAAR"
 peraar <- cpdata[, .N, by = get(key2)]
 peraar$ant <- "Antall"
 
-## peraar <- peraar[order(get), ]
-setorder(peraar, get)
+## ## peraar <- peraar[order(get), ]
+## setorder(peraar, get)
+
+## ## del tabell til to
+## del <- (round(dim(peraar)[1] / 2)) - 1
+## mdel <- dim(peraar)[1]
+## tab1 <- peraar[1:del, ]
+## tab2 <- peraar[(del + 1):mdel, ]
+
+## ## konvertere til wide
+## tbl1 <- dcast(tab1, ant ~ get, value.var = "N")
+## tbl2 <- dcast(tab2, ant ~ get, value.var = "N")
+
+## ## gir nytt navn
+## names(tbl1)[1] <- "Fødselsår"
+## names(tbl2)[1] <- "Fødselsår"
+
+## knitr::kable(tbl1)
+## knitr::kable(tbl2)
+
+## Tabell alternativ 2
+peryr <- cpdata[, .N, by = list(get(key2))]
+setorder(peryr, get)
 
 ## del tabell til to
-del <- (round(dim(peraar)[1] / 2)) - 1
-mdel <- dim(peraar)[1]
-tab1 <- peraar[1:del, ]
-tab2 <- peraar[(del + 1):mdel, ]
-
-## konvertere til wide
-tbl1 <- dcast(tab1, ant ~ get, value.var = "N")
-tbl2 <- dcast(tab2, ant ~ get, value.var = "N")
+del <- (round(dim(peryr)[1] / 2))
+mdel <- dim(peryr)[1]
+tab3 <- peryr[1:del, ]
+tab4 <- peryr[(del + 1):mdel, ]
 
 ## gir nytt navn
-names(tbl1)[1] <- "Fødselsår"
-names(tbl2)[1] <- "Fødselsår"
+names(tab3)[1] <- "Fødselsår"
+names(tab4)[1] <- "Fødselsår"
 
-knitr::kable(tbl1)
-knitr::kable(tbl2)
-```
+t1 <- kable(tab3, format = 'latex')
+t2 <- kable(tab4, format = 'latex')
+
+cat(c("\\begin{table}[!htb] \\centering ",
+      t1,
+      "\\hspace{1cm} \\centering",
+      t2,
+      "\\caption{Fødselsår} \\end{table}"))
+
+## knitr::kable(list(tab3, tab4), align = "lccc")
+
+
+  ```             
 
 
 
