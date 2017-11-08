@@ -159,6 +159,7 @@ tbmiss <- cpdata[, .N, by = get(miss)]
 Sys.setlocale(category = "LC_ALL", locale = "")
 
 ```
+
 ```{r missing , echo=FALSE, warning=FALSE, message=FALSE} 
 tbmiss$get <- factor(tbmiss$get, levels = c(0, 1), labels = c("Nei", "Ja"))
 names(tbmiss)[1] <- "Mangler 5 år"
