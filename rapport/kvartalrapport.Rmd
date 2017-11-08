@@ -42,6 +42,7 @@ sr02 <- paste0(filDir, "/", "datakilder2.R")
 ##ifelse(file.exists(sr01), source(sr01), source(sr02))
 data <- ifelse(file.exists(sr01), sr01, sr02)
 source(data)
+source(paste0(filDir, "/", "rregbar.R"))
 
 #############
 ## Knitr opt
@@ -115,26 +116,6 @@ key2 <- "FAAR"
 peraar <- cpdata[, .N, by = get(key2)]
 peraar$ant <- "Antall"
 
-## ## peraar <- peraar[order(get), ]
-## setorder(peraar, get)
-
-## ## del tabell til to
-## del <- (round(dim(peraar)[1] / 2)) - 1
-## mdel <- dim(peraar)[1]
-## tab1 <- peraar[1:del, ]
-## tab2 <- peraar[(del + 1):mdel, ]
-
-## ## konvertere til wide
-## tbl1 <- dcast(tab1, ant ~ get, value.var = "N")
-## tbl2 <- dcast(tab2, ant ~ get, value.var = "N")
-
-## ## gir nytt navn
-## names(tbl1)[1] <- "Fødselsår"
-## names(tbl2)[1] <- "Fødselsår"
-
-## knitr::kable(tbl1)
-## knitr::kable(tbl2)
-
 ## Tabell alternativ 2
 peryr <- cpdata[, .N, by = list(get(key2))]
 setorder(peryr, get)
@@ -149,20 +130,101 @@ tab4 <- peryr[(del + 1):mdel, ]
 names(tab3)[1] <- "Fødselsår"
 names(tab4)[1] <- "Fødselsår"
 
-t1 <- kable(tab3, format = 'latex')
-t2 <- kable(tab4, format = 'latex')
+t1 <- kable(tab3, format = 'latex', align = c("c", "r"))
+t2 <- kable(tab4, format = 'latex', align = c("c", "r"))
 
-cat(c("\\begin{table}[!htb] \\centering ",
-      t1,
-      "\\hspace{1cm} \\centering",
-      t2,
-      "\\caption{Fødselsår} \\end{table}"))
+## knitr::kable(list(tab3, tab4), align = "crcr")
 
-## knitr::kable(list(tab3, tab4), align = "lccc")
+cat(c("\\begin{table}[h]
+     \\centering",
+     t1,
+     "\\hspace{1cm}
+      \\centering",
+     t2,
+     "\\end{table}"))
+
+```  
+
+\pagebreak
+
+## Antall missing
+
+```{r missingloc , echo=FALSE, warning=FALSE, include=FALSE, message=FALSE} 
+
+Sys.setlocale(locale = "C")
+miss <- grep("^Mangler", colnames(cpdata), value = TRUE)
+
+tbmiss <- cpdata[, .N, by = get(miss)]
+
+Sys.setlocale(category = "LC_ALL", locale = "")
+
+```
+```{r missing , echo=FALSE, warning=FALSE, message=FALSE} 
+tbmiss$get <- factor(tbmiss$get, levels = c(0, 1), labels = c("Nei", "Ja"))
+names(tbmiss)[1] <- "Mangler 5 år"
+
+knitr::kable(tbmiss)
+```
+
+# Andel kompletthet av data 
+
+```{r komplett, echo=FALSE, warning=FALSE, message=FALSE, fig.height=6, fig.width=7}
+##total pasienter
+tot <- dim(cpdata)[1]
+
+bnna <- function(DT, var){
+  antall <- DT[, ifelse(is.na(get(var)), 0, 1)]
+  tot <- sum(antall)
+  return(tot)
+}
+
+hab <- bnna(cpdata, "HAB_TJENESTE")
+faar <- bnna(cpdata, "FAAR")
+a.diag <- bnna(cpdata, "ALDER_CPDIAG")
+cp.diag <- bnna(cpdata, "CPDIAG")
+epi <- bnna(cpdata, "EPILEPSI")
+enar <- bnna(cpdata, "ERNAERING")
+gast <- bnna(cpdata, "GASTROSTOMI")
+gmfc <- bnna(cpdata, "GMFCS")
+hors <- bnna(cpdata, "HORSELSHEM")
+kog <- bnna(cpdata, "KOG_TESTRES")
+macs <- bnna(cpdata, "MACS")
+hjerne <- bnna(cpdata, "HJERNEMISD")
+cer <- bnna(cpdata, "MR_CEREBRAL")
+post <- bnna(cpdata, "POSTNEONATAL")
+spise <- bnna(cpdata, "SPISEVANSK")
+sprak <- bnna(cpdata, "SF_RESULT")
+syns <- bnna(cpdata, "SYNSHEM")
+tale <- bnna(cpdata, "TALEFNK")
+
+tabnavn <- c("Per habiliteringstjeneste",
+             "Alle validerte fødselsårene",
+             "Alder ved CP diagnose",
+             "CP diagnose",
+             "Epilepsi",
+             "Ernæring", 
+             "Gastrostomi",
+             "GMFCS nivå",
+             "Hørselshemming",
+             "Kognisjonstest resultat",
+             "MACS nivå",
+             "Medfødte hjernemisdannelser",
+             "MR hjernen tatt",
+             "Postneonatal CP",
+             "Spisevansker",
+             "Språkforståelse",
+             "Synshemming",
+             "Talefunksjon")
 
 
-  ```             
+tabkom <- data.table(n = c(hab, faar, a.diag, cp.diag, epi, enar, gast, gmfc,
+                           hors, kog, macs, hjerne, cer, post, spise, sprak,
+                           syns, tale),
+                     var = tabnavn)
+
+tabkom[, pros := round((n / tot) * 100)]
+
+regbar(tabkom, var, pros, num = n)
 
 
-
-
+```
