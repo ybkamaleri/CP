@@ -11,8 +11,15 @@ date: '`r format(Sys.Date(), "%d %b %Y")`'
 ```{r valg, echo=FALSE, warning=FALSE, include=FALSE, message=FALSE}
 rm(list = ls())
 
-```
+##########################
+## Valg interval for år ##
+##########################
+aarFra <- 1996
+aarTil <- 2010
 
+
+```
+    
 
 ```{r setup , echo=FALSE, warning=FALSE, include=FALSE, message=FALSE} 
 ## henter pakker eller installere om ikke finnes
@@ -22,10 +29,11 @@ inspak <- function(pkg){
     install.packages(nypkg, dependencies = TRUE, repos = "http://cran.r-project.org")
 }
 
-pakke <- c("data.table", "ggplot2", "directlabels", "grid", "knitr", "kableExtra")
+pakke <- c("rreg", "data.table", "ggplot2", "directlabels", "grid", "knitr", "kableExtra")
 inspak(pakke)
 
 ## Upload libraries
+library(rreg)
 library(data.table)
 library(ggplot2)
 library(directlabels)
@@ -89,16 +97,25 @@ bNA <- function(DT, na = 0){
 
 ```
 
+\centerline{Valgt år er fra `r aarFra` til `r aarTil`}
+
+
 # Antall 5-år registreringsskjemaer
 
 ## Antall per habiliteringstjeneste
 
 ```{r habilt, echo=FALSE, warning=FALSE, message=FALSE}
-setDT(cpdata)
-setDT(cphab)
+
+setDT(cpdata) #dataset
+setDT(cphab)  #navn til habiliteringstjenester
 
 ## kombinere data og hb-navn
 cpdata <- merge(cpdata, cphab, by.x = "HAB_TJENESTE", by.y = "id")
+
+## subset data ift. valg år interval
+valgYear <- aarFra:aarTil
+cpdata <- cpdata[FAAR %in% valgYear]
+
 
 ## key1 for "per habiliteringstjeneste" 
 key1 <- "navn"
@@ -225,7 +242,9 @@ tabkom <- data.table(n = c(hab, faar, a.diag, cp.diag, epi, enar, gast, gmfc,
 
 tabkom[, pros := round((n / tot) * 100)]
 
-regbar(tabkom, var, pros, num = n)
+figlab <- sprintf("prosent kompletthet (N=%s)", tot)
+
+rreg::regbar(tabkom, var, pros, num = n, ylab = figlab)
 
 
 ```
