@@ -2,8 +2,6 @@
 title: "Kvartalsrapport for CP-register"
 output:
   pdf_document: default
-  html_document: default
-  word_document: default
 date: '`r format(Sys.Date(), "%d %b %Y")`'
 ---
 
@@ -21,7 +19,7 @@ aarTil <- 2010
 ```
     
 
-```{r setup , echo=FALSE, warning=FALSE, include=FALSE, message=FALSE} 
+```{r setup , echo=FALSE, warning=FALSE, include=FALSE, message=FALSE}  
 ## henter pakker eller installere om ikke finnes
 inspak <- function(pkg){
   nypkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
