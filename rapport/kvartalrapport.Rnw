@@ -153,9 +153,36 @@ kable(perhabtot, "latex", booktabs = TRUE) %>%
   kable_styling(latex_options = "striped", "hold_position") %>%
   row_spec(0, bold = TRUE) %>%
   row_spec(rowlast, bold = TRUE)
-  @                                                                                                                                                                           
-
+@
 \subsection{Antall per fødselsår}
 
+<<birth>>=
+key2 <- "FAAR"
+peraar <- cpdata[, .N, by = list(Fødselsår = get(key2))]
+
+## dele tabellen
+del <- (round(dim(peraar)[1] / 2))
+mdel <- dim(peraar)[1]
+tab3 <- peraar[1:del, ]
+tab4 <- peraar[(del + 1):mdel, ]
+@
+
+\begin{table}[ht]
+\begin{minipage}[t]{0.2\linewidth}\centering
+
+<<tab3>>=
+kable(tab3, 'latex', align = c("c", "r"), booktabs = TRUE)
+@
+
+\end{minipage}
+\hspace{0.3cm}
+\begin{minipage}[t]{0.2\linewidth}\centering
+
+<<tab4>>=
+kable(tab4, 'latex', align = c("c", "r"), booktabs = TRUE)
+@
+
+\end{minipage}
+\end{table}
 
 \end{document}
