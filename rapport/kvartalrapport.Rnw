@@ -154,6 +154,9 @@ kable(perhabtot, "latex", booktabs = TRUE) %>%
   row_spec(0, bold = TRUE) %>%
   row_spec(rowlast, bold = TRUE)
 @
+
+\newpage
+
 \subsection{Antall per fødselsår}
 
 <<birth>>=
@@ -167,22 +170,26 @@ tab3 <- peraar[1:del, ]
 tab4 <- peraar[(del + 1):mdel, ]
 @
 
+
 \begin{table}[ht]
-\begin{minipage}[t]{0.2\linewidth}\centering
+  \begin{center}
+  \begin{minipage}[t]{0.2\linewidth}
 
 <<tab3>>=
-kable(tab3, 'latex', align = c("c", "r"), booktabs = TRUE)
+knitr::kable(tab3, 'latex', align = c("c", "r"), booktabs = TRUE)
 @
 
 \end{minipage}
 \hspace{0.3cm}
-\begin{minipage}[t]{0.2\linewidth}\centering
+\begin{minipage}[t]{0.2\linewidth}
 
 <<tab4>>=
-kable(tab4, 'latex', align = c("c", "r"), booktabs = TRUE)
+knitr::kable(tab4, 'latex', align = c("c", "r"), booktabs = TRUE)
 @
 
 \end{minipage}
+\end{center}
 \end{table}
+
 
 \end{document}
