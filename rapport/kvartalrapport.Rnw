@@ -8,10 +8,10 @@ rm(list = ls())
 ##########################
 
 ## hvilket år som start punkt
-aarFra <- 1996
+aarFra <- 2001
 
 ## hvilket år som end punkt
-aarTil <- 2010
+aarTil <- 2017
 
 @
 
@@ -164,6 +164,7 @@ kable(perhabtot, "latex", booktabs = TRUE) %>%
 <<birth>>=
 key2 <- "FAAR"
 peraar <- cpdata[, .N, by = list(Fødselsår = get(key2))]
+peraar <- peraar[order(peraar[, 1]),]
 
 ## dele tabellen
 del <- (round(dim(peraar)[1] / 2))

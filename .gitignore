@@ -67,3 +67,4 @@ vignettes/*.pdf
 *.aux
 *.fdb_latexmk
 *.fls
+/rapport/datakilder2.R
