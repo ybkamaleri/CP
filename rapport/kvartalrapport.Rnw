@@ -216,6 +216,72 @@ kable(tbmiss, 'latex', booktabs = TRUE) %>%
   kable_styling(position = "center")
 @
 
+\newpage
 
+\section{Andel kompletthet av data}
+
+\vspace{5mm}
+
+<<komplett>>=
+##total pasienter
+tot <- dim(cpdata)[1]
+
+bnna <- function(DT, var){
+  antall <- DT[, ifelse(is.na(get(var)), 0, 1)]
+  tot <- sum(antall)
+  return(tot)
+}
+
+hab <- bnna(cpdata, "HAB_TJENESTE")
+faar <- bnna(cpdata, "FAAR")
+a.diag <- bnna(cpdata, "ALDER_CPDIAG")
+cp.diag <- bnna(cpdata, "CPDIAG")
+epi <- bnna(cpdata, "EPILEPSI")
+enar <- bnna(cpdata, "ERNAERING")
+gast <- bnna(cpdata, "GASTROSTOMI")
+gmfc <- bnna(cpdata, "GMFCS")
+hors <- bnna(cpdata, "HORSELSHEM")
+kog <- bnna(cpdata, "KOG_TESTRES")
+macs <- bnna(cpdata, "MACS")
+hjerne <- bnna(cpdata, "HJERNEMISD")
+cer <- bnna(cpdata, "MR_CEREBRAL")
+post <- bnna(cpdata, "POSTNEONATAL")
+spise <- bnna(cpdata, "SPISEVANSK")
+sprak <- bnna(cpdata, "SF_RESULT")
+syns <- bnna(cpdata, "SYNSHEM")
+tale <- bnna(cpdata, "TALEFNK")
+
+tabnavn <- c("Per habiliteringstjeneste",
+             "Alle validerte fødselsårene",
+             "Alder ved CP diagnose",
+             "CP diagnose",
+             "Epilepsi",
+             "Ernæring",
+             "Gastrostomi",
+             "GMFCS nivå",
+             "Hørselshemming",
+             "Kognisjonstest resultat",
+             "MACS nivå",
+             "Medfødte hjernemisdannelser",
+             "MR hjernen tatt",
+             "Postneonatal CP",
+             "Spisevansker",
+             "Språkforståelse",
+             "Synshemming",
+             "Talefunksjon")
+
+
+tabkom <- data.table(n = c(hab, faar, a.diag, cp.diag, epi, enar, gast, gmfc,
+                           hors, kog, macs, hjerne, cer, post, spise, sprak,
+                           syns, tale),
+                     var = tabnavn)
+
+tabkom[, pros := round((n / tot) * 100)]
+
+figlab <- sprintf("prosent kompletthet (N=%s)", tot)
+
+rreg::regbar(tabkom, var, pros, num = n, ylab = figlab)
+
+@
 
 \end{document}
