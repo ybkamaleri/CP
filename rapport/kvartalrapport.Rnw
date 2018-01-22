@@ -159,6 +159,8 @@ kable(perhabtot, "latex", booktabs = TRUE) %>%
 
 \subsection{Antall per fødselsår}
 
+\vspace{5mm}
+
 <<birth>>=
 key2 <- "FAAR"
 peraar <- cpdata[, .N, by = list(Fødselsår = get(key2))]
@@ -190,6 +192,30 @@ knitr::kable(tab4, 'latex', align = c("c", "r"), booktabs = TRUE)
 \end{minipage}
 \end{center}
 \end{table}
+
+\subsection{Antall missing}
+
+\vspace{5mm}
+
+<<missing-setup, include=FALSE>>=
+## løse problem med bukstaver
+Sys.setlocale(locale = "C")
+miss <- grep("^Mangler", colnames(cpdata), value = TRUE)
+
+tbmiss <- cpdata[, .N, by = get(miss)]
+
+Sys.setlocale(category = "LC_ALL", locale = "")
+@
+
+<<missting-table>>=
+## Lage tabellen
+tbmiss$get <- factor(tbmiss$get, levels = c(0, 1), labels = c("Nei", "Ja"))
+names(tbmiss)[1] <- "Mangler 5 år"
+
+kable(tbmiss, 'latex', booktabs = TRUE) %>%
+  kable_styling(position = "center")
+@
+
 
 
 \end{document}
