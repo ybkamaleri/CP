@@ -63,3 +63,7 @@ vignettes/*.pdf
 *.pdf
 *.pdf
 /rapport/rregbar.R
+*.tex
+*.aux
+*.fdb_latexmk
+*.fls
