@@ -68,3 +68,4 @@ vignettes/*.pdf
 *.fdb_latexmk
 *.fls
 /rapport/datakilder2.R
+/rapport/kvartalrapport.html
