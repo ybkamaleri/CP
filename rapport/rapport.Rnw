@@ -8,7 +8,7 @@ rm(list = ls())
 ##########################
 ## NB! bruk kode til hab.tjeneste
 
-hab <- 9
+hab <- 1
 
 ##########################
 ## Valg interval for år ##
@@ -159,9 +159,11 @@ htTIL <- max(htdata$FAAR)
 \section{Lokal data}
 \subsection{Antall 5-år registreringsskjemaer}
 
-Antall barn i CPRN for \Sexpr{htnavn} for fødselsår mellom \Sexpr{htFRA} til \Sexpr{htTIL} er
-\textbf{\Sexpr{sumHT}} og antall manglende 5-års skjemaer for dette tidsrommet er \textbf{\Sexpr{sumMIS}}.
-
+Tall for \Sexpr{htnavn} for fødselsår mellom \Sexpr{htFRA} til \Sexpr{htTIL}:
+\itemize{
+  \item Antall barn i CPRN  er \textbf{\Sexpr{sumHT}}
+  \item Antall manglende 5-års skjemaer er \textbf{\Sexpr{sumMIS}}
+}
 <<skjemaer, results = 'asis'>>=
 
 key1 <- "FAAR"
