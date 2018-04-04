@@ -260,7 +260,8 @@ rreg::regbar(tabkom, var, pros, num = n, ylab = figlab)
 \section{Lokal data mot landsgjennomsnitt }
 \subsection{Andelen CP diagnoser}
 
-OBS! Hva med ICD-10 som er missing (NA)? Skal det tas bort eller konvertere til noe annen?
+OBS! Hva med ICD-10 som er missing (NA)? Skal det tas bort eller konvertere til noe
+annen? Eller blir market som \textsl{missing}
 
 <<cpdiag>>=
 ## Antall barn datasettet utennom utvalgte habiliteringstjeneste
@@ -294,6 +295,10 @@ diagTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
 ## legger ICD-10 koder
 diagTab[tabICD, on = 'CPDIAG', diag := i.diag]
 
+## NA i koden endret til missing
+diagTab[is.na(diag), diag := "Missing"]
+
+
 ## Figur
 legLokal <- paste0("(l) lokal (N=", sumHT, ")")
 legLand <- paste0("(L) Landet forøvrig (N=", sumRest, ")")
@@ -306,7 +311,7 @@ rreg::regcom(diagTab, diag, np, NP, scale = "Prosent (%)", num = "n",
 
 \subsection{Andelen GMFCS nivå}
 
-Samme her når det gjelder \textsl{missing (NA)} GMFCS kode
+GMFCS kode som har status som \textbf{NA} i datasettet endret til \textsl{missing}.
 
 <<gmfcs>>=
 
@@ -333,6 +338,9 @@ gmTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
 
 ## Legger kodetekst
 gmTab[gmKode, on = 'GMFCS', kode := i.kode]
+
+## NA i koden endret til 'Missing
+gmTab[is.na(kode), kode := "Missing"]
 
 ## Figur
 rreg::regcom(gmTab, kode, np, NP, scale = "Prosent (%)", num = "n",
