@@ -120,6 +120,9 @@ cpdata <- cpdata[FAAR %in% valgYear]
 minAR <- min(cpdata$FAAR)
 maxAR <- max(cpdata$FAAR)
 
+## CP data eksludert utvalgte habiliteringstjeneste
+cpdataRest <- cpdata[id != hab, ]
+
 ## data på hver habiliteringstjeneste
 htdata <- cpdata[id == hab, ]
 htnavn <- htdata[, navn][1] #hab.tjeneste navn
@@ -151,7 +154,8 @@ htFRA <- min(htdata$FAAR)
 htTIL <- max(htdata$FAAR)
 @
 
-\section{Antall 5-år registreringsskjemaer}
+\section{Lokal data}
+\subsection{Antall 5-år registreringsskjemaer}
 
 Antall barn i CPRN for \Sexpr{htnavn} for fødselsår mellom \Sexpr{htFRA} til \Sexpr{htTIL} er
 \textbf{\Sexpr{sumHT}} og antall manglende 5-års skjemaer for dette tidsrommet er \textbf{\Sexpr{sumMIS}}.
@@ -191,10 +195,10 @@ kable(tabSkjema, "latex", booktabs = TRUE) %>%
 
 \newpage
 
-\section{Andel kompletthet av data}
+\subsection{Andel kompletthet av data}
 
 <<komplett>>=
-## Telle
+## Teller hver var
 bnna <- function(DT, var){
   antall <- DT[, ifelse(is.na(get(var)), 0, 1)]
   tot <- sum(antall)
@@ -247,8 +251,46 @@ tabkom[, pros := round((n / sumHT) * 100)]
 figlab <- sprintf("prosent kompletthet (N=%s)", sumHT)
 
 rreg::regbar(tabkom, var, pros, num = n, ylab = figlab)
+@
 
+\newpage
 
-  @                                                                                                             
+\section{Lokal data mot landsgjennomsnitt }
+\subsection{Andelen CP diagnoser}
+
+OBS! Hva med ICD-10 som er missing (NA)? Skal det tas bort eller konvertere til noe annen?
+
+<<cp_diag>>=
+## Antall barn datasettet utennom utvalgte habiliteringstjeneste
+sumCP <- dim(cpdataRest)[1]
+
+## Diagnoser for landsgjennomsnitt - antall (N) og andell (NP)
+diagCP <- cpdataRest[, list(N = .N), by = CPDIAG]
+diagCP[, NP := round((N / sumCP) * 100)]
+
+## Diagnoser for lokal - antall (n) og andell (np)
+diagHT <- htdata[, list(n = .N), by = CPDIAG]
+diagHT[, np := round((n / sumHT) * 100)]
+
+## CP ICD-10 koder
+navnICD <- c("G80.2 Høyre hemiplegi", "G80.2 Venstre hemiplegi", "G80.1 Diplegi",
+             "G80.0 Kvadriplegi", "G80.3 Choreoathetose", "G80.3 Dystoni", "G80.4 Ataxi",
+             "G80.9 Uspesifisert CP", "G80.8 Annen spesifisert infantil CP")
+tabICD <- data.table(CPDIAG = 1:9, diag = navnICD)
+
+## kombinere lokal og nasjonal
+diagTab <- merge(diagCP, diagHT, by = "CPDIAG", all.x = TRUE)
+diagTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
+
+## legger ICD-10 koder
+diagTab[tabICD, on = 'CPDIAG', diag := i.diag]
+
+## Figur
+legLokal <- paste0("(l) lokal (N=", sumHT, ")")
+legLand <- paste0("(L) Landet forøvrig (N=", sumCP, ")")
+
+rreg::regcom(diagTab, diag, np, NP, scale = "Prosent (%)", num = "n",
+             lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
+        @ 
 
 \end{document}
