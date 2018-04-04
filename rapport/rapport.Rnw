@@ -8,14 +8,14 @@ rm(list = ls())
 ##########################
 ## NB! bruk kode til hab.tjeneste
 
-hab <- 5
+hab <- 9
 
 ##########################
 ## Valg interval for år ##
 ##########################
 
 ## hvilket år som start punkt
-aarFra <- 2001
+aarFra <- 1990
 
 ## hvilket år som end punkt
 aarTil <- 2017
@@ -141,14 +141,15 @@ htnavn <- htdata[, navn][1] #hab.tjeneste navn
 \endgroup
 
 <<ht_antall, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE>>=
+## Info for utvalge hab.tjeneste
 ## Antall barn og manglende 5-år skjemaer
 sumHT <- dim(htdata)[1]
 sumMIS <- dim(htdata[mangle5aar==1,])[1]
 
-## Fødselsår finnes i utvalgte hab.tjeneste
+## Fødselsår min og max
 htFRA <- min(htdata$FAAR)
 htTIL <- max(htdata$FAAR)
-    @
+@
 
 \section{Antall 5-år registreringsskjemaer}
 
@@ -181,13 +182,73 @@ tabSkjema[is.na(m), m := 0]
 tabNavn <- c("Fødselsår", "Antall barn", "Manglende 5-år skjemaer")
 names(tabSkjema) <- tabNavn
 
-
-
 ## Tabell
 kable(tabSkjema, "latex", booktabs = TRUE) %>%
   kable_styling(latex_options = "striped", "hold_position") %>%
   row_spec(0, bold = TRUE)
 
-  @     
+@
+
+\newpage
+
+\section{Andel kompletthet av data}
+
+<<komplett>>=
+## Telle
+bnna <- function(DT, var){
+  antall <- DT[, ifelse(is.na(get(var)), 0, 1)]
+  tot <- sum(antall)
+  return(tot)
+}
+
+a.diag <- bnna(htdata, "ALDER_CPDIAG")
+cp.diag <- bnna(htdata, "CPDIAG")
+epi <- bnna(htdata, "EPILEPSI")
+enar <- bnna(htdata, "ERNAERING")
+gast <- bnna(htdata, "GASTROSTOMI")
+gmfc <- bnna(htdata, "GMFCS")
+hors <- bnna(htdata, "HORSELSHEM")
+kog <- bnna(htdata, "KOG_TESTRES")
+macs <- bnna(htdata, "MACS")
+hjerne <- bnna(htdata, "HJERNEMISD")
+cer <- bnna(htdata, "MR_CEREBRAL")
+post <- bnna(htdata, "POSTNEONATAL")
+spise <- bnna(htdata, "SPISEVANSK")
+sprak <- bnna(htdata, "SF_RESULT")
+syns <- bnna(htdata, "SYNSHEM")
+tale <- bnna(htdata, "TALEFNK")
+
+
+tabnavn <- c("Alder ved CP diagnose",
+             "CP diagnose",
+             "Epilepsi",
+             "Ernæring",
+             "Gastrostomi",
+             "GMFCS nivå",
+             "Hørselshemming",
+             "Kognisjonstest resultat",
+             "MACS nivå",
+             "Medfødte hjernemisdannelser",
+             "MR hjernen tatt",
+             "Postneonatal CP",
+             "Spisevansker",
+             "Språkforståelse",
+             "Synshemming",
+             "Talefunksjon")
+
+
+tabkom <- data.table(n = c(a.diag, cp.diag, epi, enar, gast, gmfc,
+                           hors, kog, macs, hjerne, cer, post, spise, sprak,
+                           syns, tale),
+                     var = tabnavn)
+
+tabkom[, pros := round((n / sumHT) * 100)]
+
+figlab <- sprintf("prosent kompletthet (N=%s)", sumHT)
+
+rreg::regbar(tabkom, var, pros, num = n, ylab = figlab)
+
+
+  @                                                                                                             
 
 \end{document}
