@@ -85,7 +85,9 @@ source(data)
 #############
 ## Knitr opt
 #############
-knitr::opts_chunk$set(fig.path = 'figures/cp-', echo = FALSE, message = FALSE, warning = FALSE) #mappe for figurer
+knitr::opts_chunk$set(fig.path = 'figures/cp-',
+                      echo = FALSE, message = FALSE,
+                      warning = FALSE) #mappe for figurer
 
 ###########
 ## FARGER
@@ -123,9 +125,9 @@ maxAR <- max(cpdata$FAAR)
 ## CP data eksludert utvalgte habiliteringstjeneste
 cpdataRest <- cpdata[id != hab, ]
 
-## data på hver habiliteringstjeneste
+## data for utvalgte habiliteringstjeneste
 htdata <- cpdata[id == hab, ]
-htnavn <- htdata[, navn][1] #hab.tjeneste navn
+htnavn <- htdata[, navn][1] #navn hab.tjeneste
 @
 
 \title{Kvartalsrapport for CP-register\vspace{-1.5cm}}
@@ -260,23 +262,30 @@ rreg::regbar(tabkom, var, pros, num = n, ylab = figlab)
 
 OBS! Hva med ICD-10 som er missing (NA)? Skal det tas bort eller konvertere til noe annen?
 
-<<cp_diag>>=
+<<cpdiag>>=
 ## Antall barn datasettet utennom utvalgte habiliteringstjeneste
-sumCP <- dim(cpdataRest)[1]
+sumRest <- dim(cpdataRest)[1]
 
 ## Diagnoser for landsgjennomsnitt - antall (N) og andell (NP)
 diagCP <- cpdataRest[, list(N = .N), by = CPDIAG]
-diagCP[, NP := round((N / sumCP) * 100)]
+diagCP[, NP := round((N / sumRest) * 100)]
 
 ## Diagnoser for lokal - antall (n) og andell (np)
 diagHT <- htdata[, list(n = .N), by = CPDIAG]
 diagHT[, np := round((n / sumHT) * 100)]
 
 ## CP ICD-10 koder
-navnICD <- c("G80.2 Høyre hemiplegi", "G80.2 Venstre hemiplegi", "G80.1 Diplegi",
-             "G80.0 Kvadriplegi", "G80.3 Choreoathetose", "G80.3 Dystoni", "G80.4 Ataxi",
-             "G80.9 Uspesifisert CP", "G80.8 Annen spesifisert infantil CP")
-tabICD <- data.table(CPDIAG = 1:9, diag = navnICD)
+navnICD <- c("Ikke CP",
+             "G80.2 Høyre hemiplegi",
+             "G80.2 Venstre hemiplegi",
+             "G80.1 Diplegi",
+             "G80.0 Kvadriplegi",
+             "G80.3 Choreoathetose",
+             "G80.3 Dystoni",
+             "G80.4 Ataxi",
+             "G80.9 Uspesifisert CP",
+             "G80.8 Annen spesifisert infantil CP")
+tabICD <- data.table(CPDIAG = 0:9, diag = navnICD)
 
 ## kombinere lokal og nasjonal
 diagTab <- merge(diagCP, diagHT, by = "CPDIAG", all.x = TRUE)
@@ -287,10 +296,48 @@ diagTab[tabICD, on = 'CPDIAG', diag := i.diag]
 
 ## Figur
 legLokal <- paste0("(l) lokal (N=", sumHT, ")")
-legLand <- paste0("(L) Landet forøvrig (N=", sumCP, ")")
+legLand <- paste0("(L) Landet forøvrig (N=", sumRest, ")")
 
 rreg::regcom(diagTab, diag, np, NP, scale = "Prosent (%)", num = "n",
              lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
-        @ 
+@
+ 
+\newpage
+
+\subsection{Andelen GMFCS nivå}
+
+Samme her når det gjelder \textsl{missing (NA)} GMFCS kode
+
+<<gmfcs>>=
+
+## Landsgjennomsnitt
+gmCP <- cpdataRest[, list(N = .N), by = GMFCS]
+gmCP[, NP := round((N / sumRest) * 100)]
+
+## Lokal
+gmHT <- htdata[, list(n = .N), by = GMFCS]
+gmHT[, np := round((n / sumHT) * 100)]
+
+## GMFCS koder
+gmNavn <- c("GMFCS I",
+            "GMFCS II",
+            "GMFCS III",
+            "GMFCS IV",
+            "GMFCS V",
+            "Vet ikke")
+gmKode <- data.table(GMFCS = 0:5, kode = gmNavn)
+
+## kobinere lokal og landet
+gmTab <- merge(gmCP, gmHT, by = "GMFCS", all.x = TRUE)
+gmTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
+
+## Legger kodetekst
+gmTab[gmKode, on = 'GMFCS', kode := i.kode]
+
+## Figur
+rreg::regcom(gmTab, kode, np, NP, scale = "Prosent (%)", num = "n",
+             lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
+
+@
 
 \end{document}
