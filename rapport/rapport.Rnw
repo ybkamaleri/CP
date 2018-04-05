@@ -8,14 +8,14 @@ rm(list = ls())
 ##########################
 ## NB! bruk kode til hab.tjeneste
 
-hab <- 5
+hab <- 19
 
 ##########################
 ## Valg interval for år ##
 ##########################
 
 ## hvilket år som start punkt
-aarFra <- 2001
+aarFra <- 1900
 
 ## hvilket år som end punkt
 aarTil <- 2017
@@ -292,7 +292,6 @@ tabICD <- data.table(CPDIAG = 0:9, diag = navnICD)
 
 ## kombinere lokal og nasjonal
 diagTab <- merge(diagCP, diagHT, by = "CPDIAG", all.x = TRUE)
-diagTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
 
 ## legger ICD-10 koder
 diagTab[tabICD, on = 'CPDIAG', diag := i.diag]
@@ -300,6 +299,9 @@ diagTab[tabICD, on = 'CPDIAG', diag := i.diag]
 ## NA i koden endret til missing
 diagTab[is.na(diag), diag := "Missing"]
 
+## Bytt alle NA til 0
+## diagTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
+byttNA(diagTab)
 
 ## Figur
 legLokal <- paste0("(l) lokal (N=", sumHT, ")")
@@ -335,13 +337,15 @@ gmHT[, np := round((n / sumHT) * 100)]
 
 ## kobinere lokal og landet
 gmTab <- merge(gmCP, gmHT, by = "GMFCS", all.x = TRUE)
-gmTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
 
 ## Legger kodetekst
 gmTab[gmKode, on = 'GMFCS', kode := i.kode]
 
 ## NA i koden endret til 'Missing
 gmTab[is.na(kode), kode := "Missing"]
+
+##Bytt alle NA til 0
+byttNA(gmTab)
 
 ## Figur
 rreg::regcom(gmTab, kode, np, NP, scale = "Prosent (%)", num = "n",
@@ -367,13 +371,15 @@ maHT[, np := round((n / sumHT) * 100)]
 
 ## Kombinere lokal og landet
 maTab <- merge(maCP, maHT, by = "MACS", all.x = TRUE)
-maTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
 
 ## legge tekst
 maTab[maKode, on = 'MACS', kode := i.kode]
 
 ## NA i koden endret til 'Missing
 maTab[is.na(kode), kode := "Missing"]
+
+## bytt alle NA til 0
+byttNA(maTab)
 
 ## Figur
 rreg::regcom(maTab, kode, np, NP, scale = "Prosent (%)", num = "n",
