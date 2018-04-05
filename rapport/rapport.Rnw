@@ -100,7 +100,7 @@ options(digits = 3)
 #################
 ## bytt NA med 0
 #################
-bNA <- function(DT, na = 0){
+byttNA <- function(DT, na = 0){
   for (j in seq_len(ncol(DT)))
     set(DT,which(is.na(DT[[j]])),j, na)
 }
@@ -202,7 +202,7 @@ kable(tabSkjema, "latex", booktabs = TRUE) %>%
 \subsection{Andel kompletthet av data}
 
 <<komplett>>=
-## Teller hver var
+## Teller hver var som ikke er missing
 bnna <- function(DT, var){
   antall <- DT[, ifelse(is.na(get(var)), 0, 1)]
   tot <- sum(antall)
@@ -377,6 +377,92 @@ maTab[is.na(kode), kode := "Missing"]
 
 ## Figur
 rreg::regcom(maTab, kode, np, NP, scale = "Prosent (%)", num = "n",
+             lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
+
+@
+
+\newpage
+
+\subsection{Andelen barn med tilleggsvansker og MR hjernen tatt}
+
+<<vansker>>=
+
+## Teller alle som svarte n
+bn1 <- function(DT, var, n){
+  antall <- DT[, ifelse(get(var) != n, 0, 1)]
+  tot <- sum(antall, na.rm = TRUE)
+  return(tot)
+}
+
+###################
+## Landet forøvrig
+###################
+epi0 <- bn1(cpdataRest, "EPILEPSI", 1)
+gas0 <- bn1(cpdataRest, "GASTROSTOMI", 1)
+hrs0 <- bn1(cpdataRest, "HORSELSHEM", 1)
+mrc0 <- bn1(cpdataRest, "MR_CEREBRAL", 1)
+sps0 <- bn1(cpdataRest, "SPISEVANSK", 1)
+syn0 <- bn1(cpdataRest, "SYNSHEM", 1)
+
+## psykisk utviklingshemming
+kogTEST10L <- bn1(cpdataRest, "KOG_TESTRES", 10)
+kogTEST21L <- bn1(cpdataRest, "KOG_TESTRES", 21)
+kogKK12L <- bn1(cpdataRest, "KOGN_KUN_KLINISK", 12)
+psy0 <- kogTEST10L + kogTEST21L + kogKK12L
+
+## Nedsatt tale
+tale3L <- bn1(cpdataRest, "TALEFNK", 3)
+tale4L <- bn1(cpdataRest, "TALEFNK", 4)
+tale5L <- bn1(cpdataRest, "TALEFNK", 5)
+tal0 <- tale3L + tale4L + tale5L
+
+##########
+## Lokal
+##########
+epi1 <- bn1(htdata, "EPILEPSI", 1)
+gas1 <- bn1(htdata, "GASTROSTOMI", 1)
+hrs1 <- bn1(htdata, "HORSELSHEM", 1)
+mrc1 <- bn1(htdata, "MR_CEREBRAL", 1)
+sps1 <- bn1(htdata, "SPISEVANSK", 1)
+syn1 <- bn1(htdata, "SYNSHEM", 1)
+
+## psykisk utviklingshemming
+kogTEST10 <- bn1(htdata, "KOG_TESTRES", 10)
+kogTEST21 <- bn1(htdata, "KOG_TESTRES", 21)
+kogKK12 <- bn1(htdata, "KOGN_KUN_KLINISK", 12)
+psy1 <- kogTEST10 + kogTEST21 + kogKK12
+
+## Nedsatt tale
+tale3 <- bn1(htdata, "TALEFNK", 3)
+tale4 <- bn1(htdata, "TALEFNK", 4)
+tale5 <- bn1(htdata, "TALEFNK", 5)
+tal1 <- tale3 + tale4 + tale5
+
+## Variable navn
+vasNavn <- c("Epilepsi",
+             "Gastrostomi",
+             "Hørselshemming",
+             "Psykisk utviklingshemming",
+             "MR hjernen tatt",
+             "Spisevansker",
+             "Synshemming",
+             "Nedsatt eller ingen tale")
+
+## Tabell
+vasTab <- data.table(kode = vasNavn,
+                     N = c(epi0, gas0, hrs0, psy0, mrc0, sps0, syn0, tal0),
+                     n = c(epi1, gas1, hrs1, psy1, mrc1, sps1, syn1, tal1))
+
+## Hvis det er NA, bytt til 0
+byttNA(vasTab)
+
+## Regne prosent
+vasTab[, `:=` (NP = round((N / sumRest) * 100),
+               np = round((n / sumHT) * 100))]
+
+
+## Figur
+rreg::regcom(vasTab, kode, np, NP, scale = "Prosent (%)", num = "n",
              lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
 
 @
