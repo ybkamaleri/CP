@@ -1,0 +1,426 @@
+\documentclass{article}
+
+%% Lage section deling
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+            {-2.5ex\@plus -1ex \@minus -.25ex}%
+            {1.25ex \@plus .25ex}%
+            {\normalfont\normalsize\bfseries}}
+\makeatother
+\setcounter{secnumdepth}{4} % antall section nivå å gi tall til
+\setcounter{tocdepth}{4}    % antall section nivå å vise i ToC
+
+%% kableExtra packages
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+
+%% margin
+\usepackage{geometry}
+\geometry{
+  verbose,
+  tmargin=2.5cm,
+  bmargin=2.5cm,
+  lmargin=2.5cm,
+  rmargin=2.5cm
+}
+
+%% for norske bokstaver
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+<<data-setup, echo = FALSE, message = FALSE, warning = FALSE, include = FALSE>>=
+#############
+## Knitr opt
+#############
+knitr::opts_chunk$set(fig.path = paste0('figures/cp-', hab),
+                      echo = FALSE, message = FALSE,
+                      warning = FALSE) #mappe for figurer
+
+###########
+## FARGER
+###########
+ColPoint <- "#FF3333" #farge for point
+cols <- c("#C6DBEF", "#4292C6", "#084594") #farge for flere bar
+colb <- "#99CCFF" #farge for en søyle
+options(digits = 3)
+
+#################
+## bytt NA med 0
+#################
+byttNA <- function(DT, na = 0){
+  for (j in seq_len(ncol(DT)))
+    set(DT,which(is.na(DT[[j]])),j, na)
+}
+
+#########
+## Data
+#########
+
+## subset data ift. valg år interval
+valgYear <- aarFra:aarTil
+cpdata <- cpdata[FAAR %in% valgYear]
+
+minAR <- min(cpdata$FAAR)
+maxAR <- max(cpdata$FAAR)
+
+## CP data eksludert utvalgte habiliteringstjeneste
+cpdataRest <- cpdata[id != hab, ]
+
+## data for utvalgte habiliteringstjeneste
+htdata <- cpdata[id == hab, ]
+htnavn <- htdata[, navn][1] #navn hab.tjeneste
+@
+
+\title{Kvartalsrapport for CP-register\vspace{-1.5cm}}
+\date{}
+
+\begin{document}
+
+%% Tittle
+\begingroup
+ \centering
+ \large\textbf{CP-Register kvartalsrapport for}
+ \par\vspace{1mm}\LARGE\textbf{\Sexpr{htnavn}}
+ \par\vspace{4mm}\normalsize\textbf{\Sexpr{format(Sys.Date(), "%d %b %Y")}}
+ \par\vspace{2mm}\small\textit{Data i CPRN inkluderer fødselsår fra \Sexpr{minAR} til \Sexpr{maxAR}}
+ \par\noindent\rule{\textwidth}{0.4pt}
+\endgroup
+
+<<ht_antall, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE>>=
+## Info for utvalge hab.tjeneste
+## Antall barn og manglende 5-år skjemaer
+sumHT <- dim(htdata)[1]
+sumMIS <- dim(htdata[mangle5aar==1,])[1]
+
+## Fødselsår min og max
+htFRA <- min(htdata$FAAR)
+htTIL <- max(htdata$FAAR)
+@
+
+\section{Lokal data}
+\subsection{Antall 5-år registreringsskjemaer}
+
+Tall for \Sexpr{htnavn} for fødselsår mellom \Sexpr{htFRA} til \Sexpr{htTIL}:
+\itemize{
+  \item Antall barn i CPRN  er \textbf{\Sexpr{sumHT}}
+  \item Antall manglende 5-års skjemaer er \textbf{\Sexpr{sumMIS}}
+}
+<<skjemaer, results = 'asis'>>=
+
+key1 <- "FAAR"
+## Antall barn i den utvalgte habiliteringstjeneste
+perYear <- htdata[, .N, by = list("key" = get(key1))]
+
+## sortere år
+setkey(perYear, key)
+
+## Antall mangler 5-år skjemaer
+misYear <- htdata[mangle5aar == 1, .(m = .N), by = list("key" = get(key1))]
+setkey(misYear, key)
+
+## Merge by reference
+## tabSkjema2 <- perYear[misYear, on = 'key', miss := i.m]
+
+## Vanlig merge
+tabSkjema <- merge(perYear, misYear, by = 'key', all.x = TRUE)
+
+## if NA bytt til 0
+tabSkjema[is.na(m), m := 0]
+
+## Tabell kolomnavn
+tabNavn <- c("Fødselsår", "Antall barn", "Manglende 5-år skjemaer")
+names(tabSkjema) <- tabNavn
+
+## Tabell
+kable(tabSkjema, "latex", booktabs = TRUE) %>%
+  kable_styling(latex_options = "striped", "hold_position") %>%
+  row_spec(0, bold = TRUE)
+
+@
+
+\newpage
+
+\subsection{Andel kompletthet av data}
+
+<<komplett>>=
+## Teller hver var som ikke er missing
+bnna <- function(DT, var){
+  antall <- DT[, ifelse(is.na(get(var)), 0, 1)]
+  tot <- sum(antall)
+  return(tot)
+}
+
+a.diag <- bnna(htdata, "ALDER_CPDIAG")
+cp.diag <- bnna(htdata, "CPDIAG")
+epi <- bnna(htdata, "EPILEPSI")
+enar <- bnna(htdata, "ERNAERING")
+gast <- bnna(htdata, "GASTROSTOMI")
+gmfc <- bnna(htdata, "GMFCS")
+hors <- bnna(htdata, "HORSELSHEM")
+kog <- bnna(htdata, "KOG_TESTRES")
+macs <- bnna(htdata, "MACS")
+hjerne <- bnna(htdata, "HJERNEMISD")
+cer <- bnna(htdata, "MR_CEREBRAL")
+post <- bnna(htdata, "POSTNEONATAL")
+spise <- bnna(htdata, "SPISEVANSK")
+sprak <- bnna(htdata, "SF_RESULT")
+syns <- bnna(htdata, "SYNSHEM")
+tale <- bnna(htdata, "TALEFNK")
+
+
+tabnavn <- c("Alder ved CP diagnose",
+             "CP diagnose",
+             "Epilepsi",
+             "Ernæring",
+             "Gastrostomi",
+             "GMFCS nivå",
+             "Hørselshemming",
+             "Kognisjonstest resultat",
+             "MACS nivå",
+             "Medfødte hjernemisdannelser",
+             "MR hjernen tatt",
+             "Postneonatal CP",
+             "Spisevansker",
+             "Språkforståelse",
+             "Synshemming",
+             "Talefunksjon")
+
+
+tabkom <- data.table(n = c(a.diag, cp.diag, epi, enar, gast, gmfc,
+                           hors, kog, macs, hjerne, cer, post, spise, sprak,
+                           syns, tale),
+                     var = tabnavn)
+
+tabkom[, pros := round((n / sumHT) * 100)]
+
+figlab <- sprintf("prosent kompletthet (N=%s)", sumHT)
+
+rreg::regbar(tabkom, var, pros, num = n, ylab = figlab)
+@
+
+\newpage
+
+\section{Lokal data mot landet forøvrig}
+\subsection{Andelen CP diagnoser}
+
+OBS! Hva med ICD-10 som er missing (NA)? Skal det tas bort eller konvertere til noe
+annen? Eller blir market som \textsl{missing}
+
+<<cpdiag>>=
+## Antall barn datasettet utennom utvalgte habiliteringstjeneste
+sumRest <- dim(cpdataRest)[1]
+
+## Diagnoser for landsgjennomsnitt - antall (N) og andell (NP)
+diagCP <- cpdataRest[, list(N = .N), by = CPDIAG]
+diagCP[, NP := round((N / sumRest) * 100)]
+
+## Diagnoser for lokal - antall (n) og andell (np)
+diagHT <- htdata[, list(n = .N), by = CPDIAG]
+diagHT[, np := round((n / sumHT) * 100)]
+
+## CP ICD-10 koder
+navnICD <- c("Ikke CP",
+             "G80.2 Høyre hemiplegi",
+             "G80.2 Venstre hemiplegi",
+             "G80.1 Diplegi",
+             "G80.0 Kvadriplegi",
+             "G80.3 Choreoathetose",
+             "G80.3 Dystoni",
+             "G80.4 Ataxi",
+             "G80.9 Uspesifisert CP",
+             "G80.8 Annen spesifisert infantil CP")
+tabICD <- data.table(CPDIAG = 0:9, diag = navnICD)
+
+## kombinere lokal og nasjonal
+diagTab <- merge(diagCP, diagHT, by = "CPDIAG", all.x = TRUE)
+
+## legger ICD-10 koder
+diagTab[tabICD, on = 'CPDIAG', diag := i.diag]
+
+## NA i koden endret til missing
+diagTab[is.na(diag), diag := "Missing"]
+
+## Bytt alle NA til 0
+## diagTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
+byttNA(diagTab)
+
+## Figur
+legLokal <- paste0("(l) lokal (N=", sumHT, ")")
+legLand <- paste0("(L) Landet forøvrig (N=", sumRest, ")")
+
+rreg::regcom(diagTab, diag, np, NP, scale = "Prosent (%)", num = "n",
+             lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
+@
+ 
+\newpage
+
+\subsection{Andelen GMFCS nivå}
+
+GMFCS kode som har status som \textbf{NA} i datasettet endret til \textsl{missing}.
+
+<<gmfcs>>=
+## GMFCS koder
+gmNavn <- c("Vet ikke",
+            "GMFCS I",
+            "GMFCS II",
+            "GMFCS III",
+            "GMFCS IV",
+            "GMFCS V")
+gmKode <- data.table(GMFCS = 0:5, kode = gmNavn)
+
+## Landsgjennomsnitt
+gmCP <- cpdataRest[, list(N = .N), by = GMFCS]
+gmCP[, NP := round((N / sumRest) * 100)]
+
+## Lokal
+gmHT <- htdata[, list(n = .N), by = GMFCS]
+gmHT[, np := round((n / sumHT) * 100)]
+
+## kobinere lokal og landet
+gmTab <- merge(gmCP, gmHT, by = "GMFCS", all.x = TRUE)
+
+## Legger kodetekst
+gmTab[gmKode, on = 'GMFCS', kode := i.kode]
+
+## NA i koden endret til 'Missing
+gmTab[is.na(kode), kode := "Missing"]
+
+##Bytt alle NA til 0
+byttNA(gmTab)
+
+## Figur
+rreg::regcom(gmTab, kode, np, NP, scale = "Prosent (%)", num = "n",
+             lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
+@
+
+\newpage
+
+\subsection{Andelen MACS nivå}
+
+<<macs>>=
+## MACS koder
+maNavn <- c("Vet ikke", "MACS I", "MACS II", "MACS III", "MACS IV", "MACS V")
+maKode <- data.table(MACS = 0:5, kode = maNavn)
+
+## Landsgjennomsnitt
+maCP <- cpdataRest[, list(N = .N), by = MACS]
+maCP[, NP := round((N / sumRest) * 100)]
+
+## Lokal
+maHT <- htdata[, list(n = .N), by = MACS]
+maHT[, np := round((n / sumHT) * 100)]
+
+## Kombinere lokal og landet
+maTab <- merge(maCP, maHT, by = "MACS", all.x = TRUE)
+
+## legge tekst
+maTab[maKode, on = 'MACS', kode := i.kode]
+
+## NA i koden endret til 'Missing
+maTab[is.na(kode), kode := "Missing"]
+
+## bytt alle NA til 0
+byttNA(maTab)
+
+## Figur
+rreg::regcom(maTab, kode, np, NP, scale = "Prosent (%)", num = "n",
+             lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
+
+@
+
+\newpage
+
+\subsection{Andelen barn med tilleggsvansker og MR hjernen tatt}
+
+<<vansker>>=
+
+## Teller alle som svarte n
+bn1 <- function(DT, var, n){
+  antall <- DT[, ifelse(get(var) != n, 0, 1)]
+  tot <- sum(antall, na.rm = TRUE)
+  return(tot)
+}
+
+###################
+## Landet forøvrig
+###################
+epi0 <- bn1(cpdataRest, "EPILEPSI", 1)
+gas0 <- bn1(cpdataRest, "GASTROSTOMI", 1)
+hrs0 <- bn1(cpdataRest, "HORSELSHEM", 1)
+mrc0 <- bn1(cpdataRest, "MR_CEREBRAL", 1)
+sps0 <- bn1(cpdataRest, "SPISEVANSK", 1)
+syn0 <- bn1(cpdataRest, "SYNSHEM", 1)
+
+## psykisk utviklingshemming
+kogTEST10L <- bn1(cpdataRest, "KOG_TESTRES", 10)
+kogTEST21L <- bn1(cpdataRest, "KOG_TESTRES", 21)
+kogKK12L <- bn1(cpdataRest, "KOGN_KUN_KLINISK", 12)
+psy0 <- kogTEST10L + kogTEST21L + kogKK12L
+
+## Nedsatt tale
+tale3L <- bn1(cpdataRest, "TALEFNK", 3)
+tale4L <- bn1(cpdataRest, "TALEFNK", 4)
+tale5L <- bn1(cpdataRest, "TALEFNK", 5)
+tal0 <- tale3L + tale4L + tale5L
+
+##########
+## Lokal
+##########
+epi1 <- bn1(htdata, "EPILEPSI", 1)
+gas1 <- bn1(htdata, "GASTROSTOMI", 1)
+hrs1 <- bn1(htdata, "HORSELSHEM", 1)
+mrc1 <- bn1(htdata, "MR_CEREBRAL", 1)
+sps1 <- bn1(htdata, "SPISEVANSK", 1)
+syn1 <- bn1(htdata, "SYNSHEM", 1)
+
+## psykisk utviklingshemming
+kogTEST10 <- bn1(htdata, "KOG_TESTRES", 10)
+kogTEST21 <- bn1(htdata, "KOG_TESTRES", 21)
+kogKK12 <- bn1(htdata, "KOGN_KUN_KLINISK", 12)
+psy1 <- kogTEST10 + kogTEST21 + kogKK12
+
+## Nedsatt tale
+tale3 <- bn1(htdata, "TALEFNK", 3)
+tale4 <- bn1(htdata, "TALEFNK", 4)
+tale5 <- bn1(htdata, "TALEFNK", 5)
+tal1 <- tale3 + tale4 + tale5
+
+## Variable navn
+vasNavn <- c("Epilepsi",
+             "Gastrostomi",
+             "Hørselshemming",
+             "Psykisk utviklingshemming",
+             "MR hjernen tatt",
+             "Spisevansker",
+             "Synshemming",
+             "Nedsatt eller ingen tale")
+
+## Tabell
+vasTab <- data.table(kode = vasNavn,
+                     N = c(epi0, gas0, hrs0, psy0, mrc0, sps0, syn0, tal0),
+                     n = c(epi1, gas1, hrs1, psy1, mrc1, sps1, syn1, tal1))
+
+## Hvis det er NA, bytt til 0
+byttNA(vasTab)
+
+## Regne prosent
+vasTab[, `:=` (NP = round((N / sumRest) * 100),
+               np = round((n / sumHT) * 100))]
+
+
+## Figur
+rreg::regcom(vasTab, kode, np, NP, scale = "Prosent (%)", num = "n",
+             lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
+
+@
+
+\end{document}
