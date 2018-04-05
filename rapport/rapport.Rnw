@@ -8,14 +8,14 @@ rm(list = ls())
 ##########################
 ## NB! bruk kode til hab.tjeneste
 
-hab <- 1
+hab <- 5
 
 ##########################
 ## Valg interval for år ##
 ##########################
 
 ## hvilket år som start punkt
-aarFra <- 1990
+aarFra <- 2001
 
 ## hvilket år som end punkt
 aarTil <- 2017
@@ -259,7 +259,7 @@ rreg::regbar(tabkom, var, pros, num = n, ylab = figlab)
 
 \newpage
 
-\section{Lokal data mot landsgjennomsnitt }
+\section{Lokal data mot landet forøvrig}
 \subsection{Andelen CP diagnoser}
 
 OBS! Hva med ICD-10 som er missing (NA)? Skal det tas bort eller konvertere til noe
@@ -316,6 +316,14 @@ rreg::regcom(diagTab, diag, np, NP, scale = "Prosent (%)", num = "n",
 GMFCS kode som har status som \textbf{NA} i datasettet endret til \textsl{missing}.
 
 <<gmfcs>>=
+## GMFCS koder
+gmNavn <- c("Vet ikke",
+            "GMFCS I",
+            "GMFCS II",
+            "GMFCS III",
+            "GMFCS IV",
+            "GMFCS V")
+gmKode <- data.table(GMFCS = 0:5, kode = gmNavn)
 
 ## Landsgjennomsnitt
 gmCP <- cpdataRest[, list(N = .N), by = GMFCS]
@@ -324,15 +332,6 @@ gmCP[, NP := round((N / sumRest) * 100)]
 ## Lokal
 gmHT <- htdata[, list(n = .N), by = GMFCS]
 gmHT[, np := round((n / sumHT) * 100)]
-
-## GMFCS koder
-gmNavn <- c("GMFCS I",
-            "GMFCS II",
-            "GMFCS III",
-            "GMFCS IV",
-            "GMFCS V",
-            "Vet ikke")
-gmKode <- data.table(GMFCS = 0:5, kode = gmNavn)
 
 ## kobinere lokal og landet
 gmTab <- merge(gmCP, gmHT, by = "GMFCS", all.x = TRUE)
@@ -346,6 +345,38 @@ gmTab[is.na(kode), kode := "Missing"]
 
 ## Figur
 rreg::regcom(gmTab, kode, np, NP, scale = "Prosent (%)", num = "n",
+             lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
+@
+
+\newpage
+
+\subsection{Andelen MACS nivå}
+
+<<macs>>=
+## MACS koder
+maNavn <- c("Vet ikke", "MACS I", "MACS II", "MACS III", "MACS IV", "MACS V")
+maKode <- data.table(MACS = 0:5, kode = maNavn)
+
+## Landsgjennomsnitt
+maCP <- cpdataRest[, list(N = .N), by = MACS]
+maCP[, NP := round((N / sumRest) * 100)]
+
+## Lokal
+maHT <- htdata[, list(n = .N), by = MACS]
+maHT[, np := round((n / sumHT) * 100)]
+
+## Kombinere lokal og landet
+maTab <- merge(maCP, maHT, by = "MACS", all.x = TRUE)
+maTab[is.na(n), n := 0][is.na(NP), NP := 0][is.na(np), np := 0]
+
+## legge tekst
+maTab[maKode, on = 'MACS', kode := i.kode]
+
+## NA i koden endret til 'Missing
+maTab[is.na(kode), kode := "Missing"]
+
+## Figur
+rreg::regcom(maTab, kode, np, NP, scale = "Prosent (%)", num = "n",
              lab1 = "(l)", lab2 = "(L)", leg1 = legLokal, leg2 = legLand)
 
 @
