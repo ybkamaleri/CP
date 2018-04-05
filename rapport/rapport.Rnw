@@ -85,7 +85,7 @@ source(data)
 #############
 ## Knitr opt
 #############
-knitr::opts_chunk$set(fig.path = 'figures/cp-',
+knitr::opts_chunk$set(fig.path = paste0('figures/cp-', hab),
                       echo = FALSE, message = FALSE,
                       warning = FALSE) #mappe for figurer
 

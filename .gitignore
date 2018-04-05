@@ -69,3 +69,4 @@ vignettes/*.pdf
 *.fls
 /rapport/datakilder2.R
 /rapport/kvartalrapport.html
+/rapport/kvartalrapport2.Rnw
