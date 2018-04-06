@@ -1,6 +1,8 @@
-
-### Rapport for alle habiliteringstjeneste
+#############################################
+### Rapport for alle habiliteringstjeneste ##
+#############################################
 rm(list = ls())
+
 ##########################
 ## Valg interval for år ##
 ##########################
@@ -46,5 +48,5 @@ cpdata <- cphab[cpdata, on = c(id = "HAB_TJENESTE")]
 
 ## Lage pdf dokumenter
 for (hab in unique(cphab$id)){
-  knit2pdf("rapport_all.Rnw", output = paste0('hab_', hab, '.tex'))
+  knit2pdf("cp_alle.Rnw", output = paste0('hab_', hab, '.tex'))
 }
