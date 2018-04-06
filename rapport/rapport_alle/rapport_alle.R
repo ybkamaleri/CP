@@ -13,7 +13,17 @@ aarFra <- 1996
 ## hvilket år som end punkt
 aarTil <- 2017
 
+####################
+##    Filmappe    ## 
+####################
 
+filePath <- getwd()
+
+## eg. filePath <- "K:/Sensitivt/Klinikk04/CPRN/Kvartalsrapport/rapport_alle"
+## OBS! Forward slash brukes "/" i sti spesifikasjon 
+
+
+######### Nedenfor denne linjen bør ikke endres ###############
 
 ##################################################
 ## henter pakker eller installere om ikke finnes
@@ -31,7 +41,7 @@ load(pakker)
 #############################################
 ## DATA kilder - OBS! filtype må være CSV
 #############################################
-filePath <- getwd()
+
 
 sr01 <- paste0(filePath,"/", "datakilder1.R")
 sr02 <- paste0(filePath, "/", "datakilder2.R")
